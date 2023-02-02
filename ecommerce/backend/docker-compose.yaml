@@ -1,0 +1,33 @@
+version: "3"
+
+services:
+  rabbitmq:
+    image : rabbitmq:3-management-alpine
+
+  logger-mongo:
+    image: mongo:latest
+
+  catalog-postgresql:
+    image: postgres:15.1-alpine3.16
+
+  logger:
+    image: wiaoj/ecommerce-logger
+    build:
+      context: .
+      dockerfile: src/logger/dockerfile.compose
+
+  ecommerce-catalog:
+    image: wiaoj/ecommerce-catalog
+    build:
+      context: .
+      dockerfile: src/catalog/dockerfile.compose
+
+  
+
+networks:
+  ecommerce-network:
+    driver: bridge
+volumes:
+  rabbitmq-data:
+  postgres-data:
+  catalog-data:

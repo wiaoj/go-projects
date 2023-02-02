@@ -1,0 +1,31 @@
+version: "3"
+name: "golangbankapp"
+services:
+  golang:
+    container_name: bankapp
+    image: bank-application:latest
+    ports:
+      - "80:80"
+    networks:
+      - internal
+    depends_on:
+      - "postgresql"
+    environment:
+      - POSTGRES_HOST=postgresql
+  postgresql:
+    container_name: postgresql
+    image: postgres:15.1-alpine3.16
+    networks:
+      - internal
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432"
+networks:
+  internal:
+    driver: bridge
+volumes:
+  postgres-data:

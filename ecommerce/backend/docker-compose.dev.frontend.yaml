@@ -1,0 +1,55 @@
+version: "3"
+
+services:
+  rabbitmq:
+    image : rabbitmq:3-management-alpine
+    container_name: rabbitmq
+    networks:
+      - ecommerce-network
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq/data
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  catalog-postgresql:
+    image: postgres:15.1-alpine3.16
+    container_name: catalog_database
+    networks:
+      - ecommerce-network
+    volumes:
+      - postgres-data:/catalog/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=catalog
+    ports:
+      - "5432:5432"
+
+  ecommerce-catalog:
+    image: wiaoj/ecommerce-catalog:dev-latest
+    container_name: ecommerce-catalog
+    ports:
+      - "8002:8002"
+    networks:
+      - ecommerce-network
+    depends_on:
+      - rabbitmq
+      - catalog-postgresql
+    environment:
+      - "AMQP_URL=amqp://rabbitmq"
+      - POSTGRES_HOST=catalog-postgresql
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DATABASE_NAME=catalog
+
+  
+
+networks:
+  ecommerce-network:
+    driver: bridge
+volumes:
+  rabbitmq-data:
+  postgres-data:
+  catalog-data:

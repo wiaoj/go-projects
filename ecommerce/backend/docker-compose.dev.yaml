@@ -1,0 +1,77 @@
+version: "3"
+name: "wiaoj-ecommerce"
+services:
+  rabbitmq:
+    container_name: rabbitmq
+    networks:
+      - ecommerce-network
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq/data
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  logger-mongo:
+    container_name: logger_database
+    networks:
+      - ecommerce-network
+    volumes:
+      - logger-data:/logger/mongo/data
+    environment:
+      # - MONGO_INITDB_ROOT_USERNAME=mongo
+      # - MONGO_INITDB_ROOT_PASSWORD=mongo
+      - MONGO_INITDB_DATABASE=log
+    ports:
+      - "27017:27017"
+      
+  catalog-postgresql:
+    container_name: catalog_database
+    networks:
+      - ecommerce-network
+    volumes:
+      - postgres-data:/catalog/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=catalog
+    ports:
+      - "5432:5432"
+
+  logger:
+    container_name: ecommerce-logger
+    ports:
+      - "18000:18000"
+    networks:
+      - ecommerce-network
+    depends_on:
+      - rabbitmq
+      - logger-mongo
+    environment:
+      - "AMQP_URL=amqp://rabbitmq"
+      - "MONGO_DATABASE_URL=mongodb://logger-mongo:27017"
+
+  ecommerce-catalog:
+    container_name: ecommerce-catalog
+    ports:
+      - "8002:8002"
+    networks:
+      - ecommerce-network
+    depends_on:
+      - rabbitmq
+      - catalog-postgresql
+    environment:
+      - "AMQP_URL=amqp://rabbitmq"
+      - POSTGRES_HOST=catalog-postgresql
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DATABASE_NAME=catalog
+
+networks:
+  ecommerce-network:
+    driver: bridge
+volumes:
+  rabbitmq-data:
+  postgres-data:
+  logger-data:
+  catalog-data:

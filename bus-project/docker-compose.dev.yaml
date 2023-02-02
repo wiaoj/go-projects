@@ -1,0 +1,35 @@
+version: "3"
+name: "golangBusApplication"
+services:
+  golang:
+    container_name: busApplication
+    image: wiaoj/busapplication:dev
+    ports:
+      - "80:80"
+    networks:
+      - busNetwork
+    depends_on:
+      - postgresql
+    environment:
+      - POSTGRES_HOST=busdatabase
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DATABASE_NAME=busapp
+  postgresql:
+    container_name: busdatabase
+    image: postgres:15.1-alpine3.16
+    networks:
+      - busNetwork
+    volumes:
+      - postgres-bus-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=busapp
+    ports:
+      - "5432:5432"
+networks:
+  busNetwork:
+    driver: bridge
+volumes:
+  postgres-bus-data:
